@@ -57,9 +57,11 @@ public class IndexingService {
         System.out.println("s2Polygon Built");
 
         //Cover the region and return cellIds
-        S2RegionCoverer coverer = S2RegionCoverer.builder().setMaxCells(1000).setMaxLevel(30).build();
-        ArrayList<S2CellId> s2CellIds = coverer.getCovering(s2Polygon).cellIds();
+        S2RegionCoverer coverer = S2RegionCoverer.builder().setMaxCells(10000).setMaxLevel(30).build();
+        S2CellUnion covering = coverer.getCovering(s2Polygon);
+        ArrayList<S2CellId> s2CellIds = covering.cellIds();
         System.out.println("Covering built");
+        System.out.println("Covering Area: " + covering.approxArea());
         ArrayList<String> index = new ArrayList<>();
 
         for(S2CellId id : s2CellIds){
