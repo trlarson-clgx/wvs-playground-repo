@@ -22,11 +22,11 @@ import java.util.zip.Inflater;
 @RestController
 public class AppController {
     private static final Logger logger = LoggerFactory.getLogger(AppController.class);
-    private Producer producer;
-    private IndexingService indexingService;
+    private final Producer producer;
+    private final IndexingService indexingService;
 
     @Autowired
-    void KafkaController(Producer producer, IndexingService indexingService) {
+    AppController(Producer producer, IndexingService indexingService) {
         this.producer = producer;
         this.indexingService = indexingService;
     }

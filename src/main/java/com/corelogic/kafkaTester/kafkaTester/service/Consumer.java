@@ -2,7 +2,7 @@ package com.corelogic.kafkaTester.kafkaTester.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.kafka.annotation.KafkaListener;
+//import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -14,7 +14,7 @@ public class Consumer {
 
     private final Logger logger = LoggerFactory.getLogger(Producer.class);
 
-    @KafkaListener(topics = "spatial_us-wvsplatform-kafka-to-bq-spike", groupId = "spatial_us-wvsplatform-kafka-to-bq-spike")
+    //@KafkaListener(topics = "spatial_us-wvsplatform-kafka-to-bq-spike", groupId = "spatial_us-wvsplatform-kafka-to-bq-spike")
     public void consume(byte[] output) throws IOException {
         try {
             // Decompress the bytes
