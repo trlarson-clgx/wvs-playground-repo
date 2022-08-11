@@ -1,7 +1,21 @@
 server:
   port: 9000
 spring:
-  r2dbc:
-    url:
-    username: postgres
-    password: ''
+  kafka:
+    consumer:
+      bootstrap-servers: 127.0.0.1:9092
+      group-id: spatial_us-wvsplatform-kafka-to-bq-spike
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    producer:
+      bootstrap-servers: 127.0.0.1:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable:
+          idempotence: false
+    r2dbc:
+      url:
+      username: postgres
+      password: ''
