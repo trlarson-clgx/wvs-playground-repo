@@ -14,6 +14,7 @@ import java.util.ArrayList;
 public class IndexingService {
 
     public ArrayList<String> coverPoly(byte[] poly) throws ParseException {
+        Long startTime = System.nanoTime();
         //Parse WKB to a Polygon object
         WKBReader wkbReader = new WKBReader();
         Polygon geo = (Polygon) wkbReader.read(poly);
@@ -53,25 +54,36 @@ public class IndexingService {
 
 
         S2Polygon s2Polygon = builder.assemblePolygon();
-        System.out.println("Polygon area: " + s2Polygon.getArea());
-        System.out.println("s2Polygon Built");
 
         //Cover the region and return cellIds
-        S2RegionCoverer coverer = S2RegionCoverer.builder().setMaxCells(10000).setMaxLevel(30).build();
+        S2RegionCoverer coverer = S2RegionCoverer.builder().setMaxCells(1000000).setMaxLevel(15).build();
         S2CellUnion covering = coverer.getCovering(s2Polygon);
         ArrayList<S2CellId> s2CellIds = covering.cellIds();
-        System.out.println("Covering built");
-        System.out.println("Covering Area: " + covering.approxArea());
         ArrayList<String> index = new ArrayList<>();
 
         for(S2CellId id : s2CellIds){
             index.add(Long.toHexString(id.id()));
         }
+        Long endTime = System.nanoTime();
+
+        //Useful metrics
+        // Max cells/level
+        System.out.println("Max cells: " + coverer.maxCells());
+        System.out.println("Max level: " + coverer.maxLevel());
+        //# of Cells used
+        System.out.println("Number of cells used: " + s2CellIds.size());
+        //Covering area/polygon area
+        final double ratio = covering.approxArea() / s2Polygon.getArea();
+        System.out.println("Covering ratio: " + ratio);
+        //Time to go from WKB to S2Covering
+        final double processingTime = (endTime-startTime) / 1000000.0;
+        System.out.println("Covering time: " + processingTime + " ms");
+
         return index;
     }
 
     //TODO: Move logic for going from LinearRings to S2Loops into this function
-    private void ringsToBuilderLoops(S2PolygonBuilder builder, LinearRing ring){
+    private void ringsToBuilderLoops(S2PolygonBuilder builder, ArrayList<LinearRing> rings){
 
     }
 }
