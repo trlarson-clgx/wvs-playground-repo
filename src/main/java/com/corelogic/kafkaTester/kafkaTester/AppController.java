@@ -1,5 +1,6 @@
 package com.corelogic.kafkaTester.kafkaTester;
 
+import com.corelogic.kafkaTester.kafkaTester.constant.StringConstants;
 import com.corelogic.kafkaTester.kafkaTester.data.repository.ContourRepository;
 import com.corelogic.kafkaTester.kafkaTester.pojo.Contour;
 import com.corelogic.kafkaTester.kafkaTester.service.IndexingService;
@@ -114,31 +115,39 @@ public class AppController {
     }
 
     @PostMapping(value = "/s2-index")
-    public ArrayList<ArrayList<String>> indexWKB(
+    public ArrayList<String> indexWKB(
+            @RequestBody String hexPolygon,
+            @RequestParam(value = "max-cells", defaultValue = "1000") Integer maxCells,
+            @RequestParam(value = "max-level", defaultValue = "20") Integer maxLevel) {
+        ArrayList<String> ids = new ArrayList<>();
+        byte[] wkbPolygon = HexFormat.of().parseHex(hexPolygon);
+        try{
+            ids.addAll(indexingService.coverPoly(wkbPolygon, maxCells, maxLevel));
+        }catch (Exception ex){
+            System.out.println(ex.getMessage());
+        }
+        return ids;
+    }
+
+    @PostMapping(value = "/metrics-index")
+    public String indexForMetrics(
             @RequestParam(value = "max-cells", defaultValue = "1000") Integer maxCells,
             @RequestParam(value = "max-level", defaultValue = "20") Integer maxLevel,
-            @RequestParam(value = "limit", defaultValue = "100") Integer limit) {
-        List<Contour> contours = contourRepository.getContours(limit);
-        ArrayList<ArrayList<String>> allIds = new ArrayList<>();
+            @RequestParam(value = "row-limit", defaultValue = "20") Integer rowLimit
+    ){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(StringConstants.metricsCSVHeader);
+        List<Contour> contours = contourRepository.getContours(rowLimit);
         for(Contour c : contours) {
-            ArrayList<String> ids = new ArrayList<>();
             byte[] wkbPolygon = HexFormat.of().parseHex(c.getGeom());
-//            byte[] wkbPolygon = HexFormat.of().parseHex(hexPolygon);
             try {
-                ids.addAll(indexingService.coverPoly(wkbPolygon, maxCells, maxLevel));
+                stringBuilder.append(indexingService.coverPoly(wkbPolygon, maxCells, maxLevel)).append("\n");
             } catch (Exception ex){
                 System.out.println(ex.getMessage());
             }
-            allIds.add(ids);
         }
-        System.out.println(allIds.size());
-//        ArrayList<String> ids = new ArrayList<>();
-//        byte[] wkbPolygon = HexFormat.of().parseHex(hexPolygon);
-//        try{
-//            ids.addAll(indexingService.coverPoly(wkbPolygon));
-//        }catch (Exception ex){
-//            System.out.println(ex.getMessage());
-//        }
-        return allIds;
+        String out = stringBuilder.toString();
+        System.out.println(out);
+        return out;
     }
 }

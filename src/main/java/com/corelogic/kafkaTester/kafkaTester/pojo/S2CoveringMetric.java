@@ -6,6 +6,7 @@ public class S2CoveringMetric {
     int cellsUsed;
     double coveringArea;
     double polygonArea;
+    double coveringRatio;
     double processingTimeMs;
 
     public int getMaxCells() {
@@ -60,5 +61,26 @@ public class S2CoveringMetric {
     public S2CoveringMetric setProcessingTimeMs(double processingTimeMs) {
         this.processingTimeMs = processingTimeMs;
         return this;
+    }
+
+    public double getCoveringRatio() {
+        return coveringRatio;
+    }
+
+    public S2CoveringMetric setCoveringRatio(double coveringRatio) {
+        this.coveringRatio = coveringRatio;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%d,%d,%d,%f,%f,%f,%f",
+                maxCells,
+                maxCellLevel,
+                cellsUsed,
+                coveringArea,
+                polygonArea,
+                coveringRatio,
+                processingTimeMs);
     }
 }

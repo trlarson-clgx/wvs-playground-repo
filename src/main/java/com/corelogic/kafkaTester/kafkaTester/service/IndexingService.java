@@ -1,5 +1,6 @@
 package com.corelogic.kafkaTester.kafkaTester.service;
 
+import com.corelogic.kafkaTester.kafkaTester.pojo.S2CoveringMetric;
 import com.google.common.geometry.*;
 import org.geotools.geometry.jts.WKBReader;
 import org.locationtech.jts.geom.Coordinate;
@@ -85,5 +86,31 @@ public class IndexingService {
             builder.addLoop(loop);
 
         return builder.assemblePolygon();
+    }
+
+    public String coverForMetrics(byte[] poly, Integer maxCells, Integer maxLevel) throws ParseException {
+        Long startTime = System.nanoTime();
+
+        //Build S2Polygon from byte array
+        S2Polygon s2Polygon = wkbToS2Polygon(poly);
+
+        //Cover the region
+        S2RegionCoverer coverer = S2RegionCoverer.builder().setMaxCells(maxCells).setMaxLevel(maxLevel).build();
+        S2CellUnion covering = coverer.getCovering(s2Polygon);
+
+        Long endTime = System.nanoTime();
+
+        //build metrics
+        S2CoveringMetric coveringMetric = new S2CoveringMetric()
+                .setMaxCells(coverer.maxCells())
+                .setMaxCellLevel(coverer.maxLevel())
+                .setCellsUsed(covering.cellIds().size())
+                .setCoveringArea(covering.approxArea())
+                .setPolygonArea(s2Polygon.getArea())
+                .setProcessingTimeMs((endTime-startTime) / 1000000.0)
+                .setCoveringRatio(covering.approxArea()/s2Polygon.getArea());
+
+        return coveringMetric.toString();
+
     }
 }
