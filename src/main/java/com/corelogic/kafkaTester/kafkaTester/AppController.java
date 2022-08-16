@@ -141,7 +141,7 @@ public class AppController {
         for(Contour c : contours) {
             byte[] wkbPolygon = HexFormat.of().parseHex(c.getGeom());
             try {
-                stringBuilder.append(indexingService.coverPoly(wkbPolygon, maxCells, maxLevel)).append("\n");
+                stringBuilder.append(indexingService.coverForMetrics(wkbPolygon, maxCells, maxLevel)).append("\n");
             } catch (Exception ex){
                 System.out.println(ex.getMessage());
             }

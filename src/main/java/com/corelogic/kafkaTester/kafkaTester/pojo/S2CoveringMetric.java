@@ -74,7 +74,7 @@ public class S2CoveringMetric {
 
     @Override
     public String toString() {
-        return String.format("%d,%d,%d,%f,%f,%f,%f",
+        return String.format("%d,%d,%d,%g,%g,%f,%f",
                 maxCells,
                 maxCellLevel,
                 cellsUsed,
