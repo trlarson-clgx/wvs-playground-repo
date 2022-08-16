@@ -15,45 +15,9 @@ public class IndexingService {
 
     public ArrayList<String> coverPoly(byte[] poly, Integer maxCells, Integer maxLevel) throws ParseException {
         Long startTime = System.nanoTime();
-        //Parse WKB to a Polygon object
-        WKBReader wkbReader = new WKBReader();
-        Polygon geo = (Polygon) wkbReader.read(poly);
-        System.out.println("Parsed WKB");
 
-        //Break polygon into rings.
-        ArrayList<LinearRing> linearRings = new ArrayList<>();
-        linearRings.add(geo.getExteriorRing());
-        for(int i = 0; i < geo.getNumInteriorRing(); i++){
-            linearRings.add(geo.getInteriorRingN(i));
-        }
-
-        //Use rings in building an S2polygon
-        S2PolygonBuilder builder = new S2PolygonBuilder();
-        for(LinearRing lr : linearRings) {
-            Coordinate[] coordinates = lr.getCoordinates();
-            for (int i = 0; i < coordinates.length - 1; i++) {
-                S1Angle lat1 = S1Angle.degrees(coordinates[i].y);
-                S1Angle lng1 = S1Angle.degrees(coordinates[i].x);
-                S1Angle lat2 = S1Angle.degrees(coordinates[i + 1].y);
-                S1Angle lng2 = S1Angle.degrees(coordinates[i + 1].x);
-
-                builder.addEdge(new S2LatLng(lat2, lng2).toPoint(), new S2LatLng(lat1, lng1).toPoint());
-            }
-
-            S1Angle lat1 = S1Angle.degrees(coordinates[coordinates.length - 1].y);
-            S1Angle lng1 = S1Angle.degrees(coordinates[coordinates.length - 1].x);
-            S1Angle lat2 = S1Angle.degrees(coordinates[0].y);
-            S1Angle lng2 = S1Angle.degrees(coordinates[0].x);
-            builder.addEdge(new S2LatLng(lat2, lng2).toPoint(), new S2LatLng(lat1, lng1).toPoint());
-        }
-
-        ArrayList<S2Loop> loops = new ArrayList<>();
-        builder.assembleLoops(loops, null);
-        for(S2Loop loop : loops)
-            builder.addLoop(loop);
-
-
-        S2Polygon s2Polygon = builder.assemblePolygon();
+        //Build S2Polygon from byte array
+        S2Polygon s2Polygon = wkbToS2Polygon(poly);
 
         //Cover the region and return cellIds
         S2RegionCoverer coverer = S2RegionCoverer.builder().setMaxCells(maxCells).setMaxLevel(maxLevel).build();
@@ -83,7 +47,43 @@ public class IndexingService {
     }
 
     //TODO: Move logic for going from LinearRings to S2Loops into this function
-    private void ringsToBuilderLoops(S2PolygonBuilder builder, LinearRing ring){
+    private S2Polygon wkbToS2Polygon(byte[] poly) throws ParseException {
+        //Parse WKB
+        WKBReader wkbReader = new WKBReader();
+        Polygon geo = (Polygon) wkbReader.read(poly);
 
+        //Break polygon into rings.
+        ArrayList<LinearRing> linearRings = new ArrayList<>();
+        linearRings.add(geo.getExteriorRing());
+        for(int i = 0; i < geo.getNumInteriorRing(); i++){
+            linearRings.add(geo.getInteriorRingN(i));
+        }
+
+        S2PolygonBuilder builder = new S2PolygonBuilder();
+
+        for(LinearRing lr : linearRings) {
+            Coordinate[] coordinates = lr.getCoordinates();
+            for (int i = 0; i < coordinates.length - 1; i++) {
+                S1Angle lat1 = S1Angle.degrees(coordinates[i].y);
+                S1Angle lng1 = S1Angle.degrees(coordinates[i].x);
+                S1Angle lat2 = S1Angle.degrees(coordinates[i + 1].y);
+                S1Angle lng2 = S1Angle.degrees(coordinates[i + 1].x);
+
+                builder.addEdge(new S2LatLng(lat2, lng2).toPoint(), new S2LatLng(lat1, lng1).toPoint());
+            }
+
+            S1Angle lat1 = S1Angle.degrees(coordinates[coordinates.length - 1].y);
+            S1Angle lng1 = S1Angle.degrees(coordinates[coordinates.length - 1].x);
+            S1Angle lat2 = S1Angle.degrees(coordinates[0].y);
+            S1Angle lng2 = S1Angle.degrees(coordinates[0].x);
+            builder.addEdge(new S2LatLng(lat2, lng2).toPoint(), new S2LatLng(lat1, lng1).toPoint());
+        }
+
+        ArrayList<S2Loop> loops = new ArrayList<>();
+        builder.assembleLoops(loops, null);
+        for(S2Loop loop : loops)
+            builder.addLoop(loop);
+
+        return builder.assemblePolygon();
     }
 }
