@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HexFormat;
@@ -131,23 +134,32 @@ public class AppController {
 
     @PostMapping(value = "/metrics-index")
     public String indexForMetrics(
-            @RequestParam(value = "max-cells", defaultValue = "1000") Integer maxCells,
+            @RequestParam(value = "max-cells", defaultValue = "2000000") Integer maxCells,
             @RequestParam(value = "max-level", defaultValue = "20") Integer maxLevel,
             @RequestParam(value = "row-limit", defaultValue = "20") Integer rowLimit
-    ){
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(StringConstants.metricsCSVHeader);
+    ) throws IOException {
+        FileWriter outputCSV = new FileWriter("S2CoveringMetrics.csv");
+        outputCSV.append(StringConstants.metricsCSVHeader);
         List<Contour> contours = contourRepository.getContours(rowLimit);
-        for(Contour c : contours) {
-            byte[] wkbPolygon = HexFormat.of().parseHex(c.getGeom());
-            try {
-                stringBuilder.append(indexingService.coverForMetrics(wkbPolygon, maxCells, maxLevel)).append("\n");
-            } catch (Exception ex){
-                System.out.println(ex.getMessage());
+
+        for(int lvl = 1; lvl <= 30; lvl++){
+            logger.info("Processing Level " + lvl);
+            StringBuilder sb = new StringBuilder();
+
+            for (Contour c : contours) {
+                byte[] wkbPolygon = HexFormat.of().parseHex(c.getGeom());
+                try {
+                    sb.append(indexingService.coverForMetrics(wkbPolygon, maxCells, lvl)).append("\n");
+                } catch (Exception ex) {
+                    System.out.println(ex.getMessage());
+                }
             }
+            outputCSV.append(sb.toString());
         }
-        String out = stringBuilder.toString();
+
+        String out = outputCSV.toString();
         System.out.println(out);
+        outputCSV.close();
         return out;
     }
 }
