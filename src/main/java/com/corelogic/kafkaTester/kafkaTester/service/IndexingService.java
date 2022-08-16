@@ -13,14 +13,14 @@ import java.util.ArrayList;
 @Service
 public class IndexingService {
 
-    public ArrayList<String> coverPoly(byte[] poly) throws ParseException {
+    public ArrayList<String> coverPoly(byte[] poly, Integer maxCells, Integer maxLevel) throws ParseException {
         Long startTime = System.nanoTime();
 
         //Build S2Polygon from byte array
         S2Polygon s2Polygon = wkbToS2Polygon(poly);
 
         //Cover the region and return cellIds
-        S2RegionCoverer coverer = S2RegionCoverer.builder().setMaxCells(1000000).setMaxLevel(15).build();
+        S2RegionCoverer coverer = S2RegionCoverer.builder().setMaxCells(maxCells).setMaxLevel(maxLevel).build();
         S2CellUnion covering = coverer.getCovering(s2Polygon);
         ArrayList<S2CellId> s2CellIds = covering.cellIds();
         ArrayList<String> index = new ArrayList<>();

@@ -1,0 +1,24 @@
+services:
+  wvs-testing-repo-psql:
+    image: mdillon/postgis:11
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: testdb
+    ports: ["5432:5432"]
+    command: [ "postgres", "-c", "log_statement=all" ]
+  flyway-psql:
+    image: flyway/flyway:8.4.4
+    volumes:
+      - ./db-postgres/flyway-psql:/flyway/sql
+      - ./db-postgres/flyway.conf:/flyway/conf/flyway.conf
+    command: -connectRetries=20 migrate
+    depends_on: [ wvs-testing-repo-psql ]
+  wvs-testing-repo:
+    build:
+      context: ./
+      dockerfile: dockerfiles/dev/Dockerfile
+    depends_on: [ wvs-testing-repo-psql ]
+    environment:
+      - SPRING_R2DBC_URL=r2dbc:postgres://wvs-testing-repo-psql/testdb
+    command: java -Dspring.profiles.active=private -Dlogging.level.root=info -Dlogging.level.wvsapi=info -jar app.jar
+    ports: [ "8080:8080" ]

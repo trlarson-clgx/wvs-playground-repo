@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.corelogic.kafkaTester'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
+sourceCompatibility = '17'
 
 repositories {
 	maven {
@@ -22,6 +22,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 //	implementation 'org.springframework.kafka:spring-kafka'
 	implementation group: 'com.google.geometry', name: 's2-geometry', version: '2.0.0'
+    implementation 'org.flywaydb:flyway-core:9.0.4'
+    implementation 'io.r2dbc:r2dbc-postgresql:0.8.12.RELEASE'
+    implementation 'org.springframework.data:spring-data-r2dbc:1.5.2'
 
 	// Geotools dependencies
 	implementation group:'org.geotools', name:'gt-main', version:'27.1'
