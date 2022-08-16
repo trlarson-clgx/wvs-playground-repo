@@ -1,5 +1,5 @@
 server:
-  port: 9000
+  port: 8080
 spring:
   kafka:
     consumer:
@@ -15,7 +15,7 @@ spring:
       properties:
         enable:
           idempotence: false
-    r2dbc:
-      url:
-      username: postgres
-      password: ''
+  r2dbc:
+#    url: r2dbc:postgres://wvs-testing-repo-psql/testdb
+    username: postgres
+    password: ''

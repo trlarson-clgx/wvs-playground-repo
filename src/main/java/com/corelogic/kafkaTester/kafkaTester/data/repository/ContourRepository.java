@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public class ContourRepository {
     @Qualifier("testDatabaseClient")
     @Autowired
     DatabaseClient databaseClient;
-    String selectAllContours = "SELECT id, gid, pgid, ymd, z, geom FROM contours";
+    String selectAllContours = "SELECT id, gid, pgid, ymd, z, geom FROM contours limit :limit";
     String selectContoursByDate = "SELECT id, gid, pgid, ymd, z, geom FROM contours WHERE date = :date";
 
     private Contour rowToContour(Row row) {
@@ -24,13 +25,14 @@ public class ContourRepository {
                 .setId(row.get("id", Integer.class))
                 .setGid(row.get("gid", Integer.class))
                 .setPgid(row.get("pgid", Integer.class))
-                .setYmd(row.get("ymd", LocalDate.class))
+                .setYmd(row.get("ymd", String.class))
                 .setZ(row.get("z", Float.class))
                 .setGeom(row.get("geom", String.class));
     }
 
-    public List<Contour> getContours() {
+    public List<Contour> getContours(Integer limit) {
          return databaseClient.sql(selectAllContours)
+                 .bind("limit", limit)
                  .map(this::rowToContour)
                  .all()
                  .collectList()

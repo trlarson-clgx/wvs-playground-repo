@@ -13,7 +13,7 @@ import java.util.ArrayList;
 @Service
 public class IndexingService {
 
-    public ArrayList<String> coverPoly(byte[] poly) throws ParseException {
+    public ArrayList<String> coverPoly(byte[] poly, Integer maxCells, Integer maxLevel) throws ParseException {
         //Parse WKB to a Polygon object
         WKBReader wkbReader = new WKBReader();
         Polygon geo = (Polygon) wkbReader.read(poly);
@@ -57,7 +57,7 @@ public class IndexingService {
         System.out.println("s2Polygon Built");
 
         //Cover the region and return cellIds
-        S2RegionCoverer coverer = S2RegionCoverer.builder().setMaxCells(10000).setMaxLevel(30).build();
+        S2RegionCoverer coverer = S2RegionCoverer.builder().setMaxCells(maxCells).setMaxLevel(maxLevel).build();
         S2CellUnion covering = coverer.getCovering(s2Polygon);
         ArrayList<S2CellId> s2CellIds = covering.cellIds();
         System.out.println("Covering built");

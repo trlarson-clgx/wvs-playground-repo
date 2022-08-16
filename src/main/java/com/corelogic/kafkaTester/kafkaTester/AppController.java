@@ -1,21 +1,21 @@
 package com.corelogic.kafkaTester.kafkaTester;
 
+import com.corelogic.kafkaTester.kafkaTester.data.repository.ContourRepository;
+import com.corelogic.kafkaTester.kafkaTester.pojo.Contour;
 import com.corelogic.kafkaTester.kafkaTester.service.IndexingService;
 import com.corelogic.kafkaTester.kafkaTester.service.Producer;
-import com.google.common.geometry.S2;
-import com.google.common.geometry.S2Cell;
-import com.google.common.geometry.S2CellId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
@@ -24,11 +24,13 @@ public class AppController {
     private static final Logger logger = LoggerFactory.getLogger(AppController.class);
     private final Producer producer;
     private final IndexingService indexingService;
+    private final ContourRepository contourRepository;
 
     @Autowired
-    AppController(Producer producer, IndexingService indexingService) {
+    AppController(Producer producer, IndexingService indexingService, ContourRepository contourRepository) {
         this.producer = producer;
         this.indexingService = indexingService;
+        this.contourRepository = contourRepository;
     }
 
     @PostMapping(value = "/publish")
@@ -112,14 +114,31 @@ public class AppController {
     }
 
     @PostMapping(value = "/s2-index")
-    public ArrayList<String> indexWKB(@RequestBody String hexPolygon){
-        ArrayList<String> ids = new ArrayList<>();
-        byte[] wkbPolygon = HexFormat.of().parseHex(hexPolygon);
-        try{
-            ids.addAll(indexingService.coverPoly(wkbPolygon));
-        }catch (Exception ex){
-            System.out.println(ex.getMessage());
+    public ArrayList<ArrayList<String>> indexWKB(
+            @RequestParam(value = "max-cells", defaultValue = "1000") Integer maxCells,
+            @RequestParam(value = "max-level", defaultValue = "20") Integer maxLevel,
+            @RequestParam(value = "limit", defaultValue = "100") Integer limit) {
+        List<Contour> contours = contourRepository.getContours(limit);
+        ArrayList<ArrayList<String>> allIds = new ArrayList<>();
+        for(Contour c : contours) {
+            ArrayList<String> ids = new ArrayList<>();
+            byte[] wkbPolygon = HexFormat.of().parseHex(c.getGeom());
+//            byte[] wkbPolygon = HexFormat.of().parseHex(hexPolygon);
+            try {
+                ids.addAll(indexingService.coverPoly(wkbPolygon, maxCells, maxLevel));
+            } catch (Exception ex){
+                System.out.println(ex.getMessage());
+            }
+            allIds.add(ids);
         }
-        return ids;
+        System.out.println(allIds.size());
+//        ArrayList<String> ids = new ArrayList<>();
+//        byte[] wkbPolygon = HexFormat.of().parseHex(hexPolygon);
+//        try{
+//            ids.addAll(indexingService.coverPoly(wkbPolygon));
+//        }catch (Exception ex){
+//            System.out.println(ex.getMessage());
+//        }
+        return allIds;
     }
 }

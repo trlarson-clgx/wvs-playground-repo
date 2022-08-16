@@ -6,7 +6,7 @@ public class Contour {
     private Integer id;
     private Integer gid;
     private Integer pgid;
-    private LocalDate ymd;
+    private String ymd;
     private Float z;
     private String geom;
 
@@ -37,11 +37,11 @@ public class Contour {
         return this;
     }
 
-    public LocalDate getYmd() {
+    public String getYmd() {
         return ymd;
     }
 
-    public Contour setYmd(LocalDate ymd) {
+    public Contour setYmd(String ymd) {
         this.ymd = ymd;
         return this;
     }

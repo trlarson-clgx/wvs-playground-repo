@@ -19,6 +19,6 @@ services:
       dockerfile: dockerfiles/dev/Dockerfile
     depends_on: [ wvs-testing-repo-psql ]
     environment:
-      - SPRING_R2DBC_URL=r2dbc:postgresql://wvs-testing-repo-psql/testdb
+      - SPRING_R2DBC_URL=r2dbc:postgres://wvs-testing-repo-psql/testdb
     command: java -Dspring.profiles.active=private -Dlogging.level.root=info -Dlogging.level.wvsapi=info -jar app.jar
-    ports: [ "9000:8080" ]
+    ports: [ "8080:8080" ]
